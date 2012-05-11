@@ -1,0 +1,3 @@
+.tablesearch-hide-row { display: none }
+.tablesearch-show-row { display: table-row }
+.tablesearch-show-rows tr { display: table-row !important }
