@@ -11,69 +11,91 @@
 	var defaults = {
 		rowIndex: 0
 	}
-	
-	var TableSearch = function(elem,domTBody,options) {
-		
-		this.elemTimeout;
-		this.row;
-		this.elem = elem;
-		this.domTBody = domTBody;
-		this.options = options;
-		this.cache = [];
-		this.rows;
-		
-		console.log(this.cache)
-		
-		this.search = function() {
-			
-			$(this.domTBody).removeClass('tablesearch-show-rows');
-			
-			var i = 0;
-			
-			this.rows = ( this.cache.length > 0 ) ? this.cache : this.domTBody.rows;
-			
-			while ( row = this.rows[i++] ) {
-			
-				if ( $(row.cells[this.options.rowIndex]).text().toLowerCase().indexOf($.trim(this.elem.value.toLowerCase())) > -1 ) {
+
+	var TableSearch = (function($){
+
+		// vars
+		// private
+		var _timeOut
+			,_row
+			,_elem
+			,_selectorTBody
+			,_options
+			,_cache = []
+			,_rows
+			,_clsShowRows = 'tablesearch-show-rows'
+			,_clsShowRow  = 'tablesearch-show-row'
+			,_clsHideRow  = 'tablesearch-hide-row';
+
+		// functions
+		// private
+		var _search = function() {
+				var i = 0;
+
+				_selectorTBody.removeClass(_clsShowRows);
+
+				_rows = ( _cache.length > 0 ) ? _cache : _selectorTBody[0].rows;
+
+				while ( _row = _rows[i++] ) {
 				
-					$(row).removeClass('tablesearch-hide-row').addClass('tablesearch-show-row');
+					if ( $(_row.cells[_options.rowIndex]).text().toLowerCase().indexOf($.trim(_elem.value.toLowerCase())) > -1 ) {
 					
-					if ( $.inArray(row,this.cache) === -1 ) {
-						this.cache[this.cache.length] = row;
+						$(_row)
+							.removeClass(_clsHideRow)
+							.addClass(_clsShowRow);
+						
+						if ( $.inArray(_row,_cache) === -1 ) {
+							_cache[_cache.length] = _row;
+						}
+						
+					} else {
+						$(_row)
+							.removeClass(_clsShowRow)
+							.addClass(_clsHideRow);
 					}
-					
-				} else {
-					$(row).removeClass('tablesearch-show-row').addClass('tablesearch-hide-row');
 				}
 			}
-		}
-		
-		this.trigger = function() {
-			
-			if ( this.elem.value !== '' && this.elem.value.length > 3 ) {
-				window.clearTimeout(this.elemTimeout);
-				this.elemTimeout = window.setTimeout($.proxy(this.search,this),100)
-			} else {
-				$(this.domTBody).addClass('tablesearch-show-rows');
-				this.cache = [];
-				this.rows = null;
+			,_trigger = function() {
+				if ( _elem.value !== '' && _elem.value.length > 3 ) {
+					window.clearTimeout(_timeOut);
+					_timeOut = window.setTimeout(_search,100);
+				} else {
+					_selectorTBody.addClass(_clsShowRows);
+					_cache = [];
+					_rows = null;
+				}
+			}
+
+		// expose
+		return {
+			init: function(elem,selectorTBody,options) {
+
+				// input
+				_elem = elem;
+
+				// jQuery Object
+				_selectorTBody = selectorTBody;
+
+				// options
+				_options = options;
+
+				$(_elem).on('keyup',_trigger);
+
 			}
 		}
-		
-		$(this.elem).on('keyup',$.proxy(this.trigger,this))
-	}
+
+	})(jQuery);
 	
-	$.fn.tableSearch = function(domTBody, options) {
+	$.fn.tableSearch = function(selectorTBody, options) {
+
 		return this.each(function(){
 		
 			if ( false === $(this).is(':text') ) {
 				return;
 			}
 			
-			new TableSearch(this,domTBody,$.extend(defaults,options));
+			TableSearch.init(this,$(selectorTBody),$.extend(defaults,options));
 		});
 	}
-	
-	$('#jquery-table-search').tableSearch($('#demotable1')[0].tBodies[0]);
 	
 }(jQuery, window, document));
